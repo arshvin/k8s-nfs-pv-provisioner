@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pv-provisioner
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fake-storage-class
+provisioner: fake-vendor/fake-storage-provioner
+reclaimPolicy: Delete
+parameters:
+  outerAssetRoot: /mnt/efs/
+  ownerNewAssetUid: "1000"
+  ownerNewAssetGid: "1000"
+
+---
+
+apiVersion: v1
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnbHVzdm4tc3Q5MTQ3MDQubmEubm92YXJ0aXMubmV0OjEwMDAxIjogewoJCQkiYXV0aCI6ICJaRzlqYTJWeVgzSnZNVHB4ZDJWeWRIbGhjMlJtTVE9PSIKCQl9Cgl9LAoJIkh0dHBIZWFkZXJzIjogewoJCSJVc2VyLUFnZW50IjogIkRvY2tlci1DbGllbnQvMTkuMDMuMSAobGludXgpIgoJfQp9
+kind: Secret
+metadata:
+  name: legacy-nexus
+  namespace: pv-provisioner
+type: kubernetes.io/dockerconfigjson
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pv-provisioner
+  namespace: pv-provisioner
+imagePullSecrets:
+- name: legacy-nexus
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pv-provisioner
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list","watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list","watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["get", "list","watch","create", "update", "patch", "delete"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list","watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pv-provisioner
+subjects:
+- kind: ServiceAccount
+  name: pv-provisioner
+  namespace: pv-provisioner
+roleRef:
+  kind: ClusterRole
+  name: pv-provisioner
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: persistent-volume-provisioner
+  namespace: pv-provisioner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pv-provisioner
+  template:
+    metadata:
+      labels:
+        app: pv-provisioner
+    spec:
+      serviceAccountName: pv-provisioner
+      containers:
+        - name: provisioner
+          args:
+            - -inner-asset-root=/pv
+            - -storage-class=fake-storage-class
+          image: localhost:32000/fake-provisioner:0.0.1
+          volumeMounts:
+            - mountPath: /pv/
+              name: data
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/efs/
+            type: Directory
+      dnsPolicy: Default
