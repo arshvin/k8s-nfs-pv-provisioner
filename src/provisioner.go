@@ -50,6 +50,8 @@ const (
 	annotationProvisionedBy      = "pv.kubernetes.io/provisioned-by"
 	annotationStorageClass       = "volume.beta.kubernetes.io/storage-class"
 	annotationStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
+	annotationOwnerNewAssetUID   = "storage.asset/owner-uid"
+	annotationOwnerNewAssetGID   = "storage.asset/owner-gid"
 )
 
 func (provisioner *Provisioner) init(client *kubernetes.Clientset, appConfig AppConfig) {
@@ -104,7 +106,7 @@ func (provisioner *Provisioner) init(client *kubernetes.Clientset, appConfig App
 }
 
 func (provisioner Provisioner) createPV(client *kubernetes.Clientset, pvcChannel <-chan v1.PersistentVolumeClaim) {
-	createStorageAsset := func(storageAsset string) (string, string, error) {
+	createStorageAsset := func(storageAsset string, uid, gid int) (string, string, error) {
 
 		storageAssetInner := path.Join(provisioner.innerAssetRootPath, storageAsset)
 		storageAssetOuter := path.Join(provisioner.outerAssetRootPath, storageAsset)
@@ -113,17 +115,51 @@ func (provisioner Provisioner) createPV(client *kubernetes.Clientset, pvcChannel
 			return "", "", fmt.Errorf("The asset '%s'(container) or '%s'(OS) already exists", storageAssetInner, storageAssetOuter)
 		}
 
-		if err := os.MkdirAll(storageAssetInner, 0777); os.IsPermission(err) {
+		if err := os.MkdirAll(storageAssetInner, 0755); os.IsPermission(err) {
 			return "", "", fmt.Errorf("Permission denied to create the asset '%s'(container) or '%s'(OS)", storageAssetInner, storageAssetOuter)
 		}
 
-		if err := os.Chown(storageAssetInner, provisioner.ownerNewAssetUID, provisioner.ownerNewAssetGID); err != nil {
+		if err := os.Chown(storageAssetInner, uid, gid); err != nil {
 			return "", "", fmt.Errorf("Ownership setup for the asset '%s'(container) or '%s'(OS) was failed", storageAssetInner, storageAssetOuter)
 		}
 
-		logger.Printf("Storage asset '%s' was successfully created", storageAssetOuter)
+		logger.Printf("Storage asset '%s' was successfully created with ownership '%d:%d'", storageAssetOuter, uid, gid)
 		return storageAssetInner, storageAssetOuter, nil
 	}
+
+	chooseAssetOwner := func(pvc v1.PersistentVolumeClaim, defaultUid, defaultGid int) (int, int) {
+		var uid, gid int
+
+		tmp, ok := pvc.Annotations[annotationOwnerNewAssetUID]
+		if !ok {
+			uid = defaultUid
+		} else {
+			_uid, err := strconv.ParseInt(tmp, 10, 32)
+			if err != nil {
+				logger.Printf("Could not parse '%s' as int value of '%s' annotation. Storage class Uid is used: %d", tmp, pvc.Name, defaultUid)
+				uid = defaultUid
+			} else {
+				uid = int(_uid)
+			}
+		}
+
+		tmp, ok = pvc.Annotations[annotationOwnerNewAssetGID]
+		if !ok {
+			gid = defaultGid
+		} else {
+			_gid, err := strconv.ParseInt(tmp, 10, 32)
+			if err != nil {
+				logger.Printf("Could not parse '%s' as int value of '%s' annotation. Storage class Gid is used: %d", tmp, pvc.Name, defaultGid)
+				gid = defaultGid
+			} else {
+				gid = int(_gid)
+			}
+		}
+
+		return uid, gid
+	}
+
+	defaultUID, defaultGID := provisioner.ownerNewAssetUID, provisioner.ownerNewAssetGID
 
 	for pvc := range pvcChannel {
 		var stringBuilder strings.Builder
@@ -131,7 +167,9 @@ func (provisioner Provisioner) createPV(client *kubernetes.Clientset, pvcChannel
 		fmt.Fprintf(&stringBuilder, "%s-%s-vol", pvc.Namespace, strings.ReplaceAll(pvc.Name, "claim", ""))
 		storageAsset := stringBuilder.String()
 
-		_, storageAssetOuter, err := createStorageAsset(storageAsset)
+		uid, gid := chooseAssetOwner(pvc, defaultUID, defaultGID)
+		_, storageAssetOuter, err := createStorageAsset(storageAsset, uid, gid)
+
 		if err != nil {
 			logger.Printf("PV provision for claim '%s' failed: %s", pvc.Name, err)
 			continue //Skip further work for the claim

@@ -28,8 +28,8 @@ spec:
   hostPath:
     path: /mnt/something3
     type: Directory
----
 
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:

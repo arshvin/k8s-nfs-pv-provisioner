@@ -11,7 +11,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: fake-storage-class
+  storageClassName: nfs-storage-class
 
 ---
 apiVersion: v1
@@ -26,7 +26,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: fake-storage-class
+  storageClassName: nfs-storage-class
 
 ---
 apiVersion: v1
@@ -61,4 +61,22 @@ spec:
       release: "stable"
     matchExpressions:
       - { key: environment, operator: In, values: [dev] }
-  storageClassName: fake-storage-class
+  storageClassName: nfs-storage-class
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc06
+  namespace: test-01
+  annotations:
+    storage.asset/owner-uid: "999"
+    storage.asset/owner-gid: "998"
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-storage-class
+ 

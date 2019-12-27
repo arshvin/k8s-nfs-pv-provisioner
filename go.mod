@@ -1,4 +1,4 @@
-module fake-provisioner
+module nfs-provisioner
 
 go 1.13
 

@@ -1,0 +1,38 @@
+- name: Install snapd
+  yum:
+    name: snapd
+    state: installed
+
+- name: Run the service
+  systemd:
+    name: snapd
+    enabled: yes
+    state: started
+
+- name: Create link to /var/lib/snapd/snap
+  file:
+    state: link
+    src: /var/lib/snapd/snap
+    dest: /snap
+
+- name: Wait snapd availability
+  wait_for:
+    path: /var/lib/snapd/system-key 
+    timeout: 30
+    delay: 5
+
+- name: Install microk8s
+  snap:
+    name: microk8s
+    channel: "{{ microk8s_snap_channel }}"
+    classic: "{{ microk8s_snap_classic }}"
+
+- name: Create alias for kubectl
+  shell: snap alias microk8s.kubectl kubectl
+
+- name: Adde vagrant user into microk8s group
+  user:
+    name: vagrant
+    groups:
+      - microk8s
+    append: yes

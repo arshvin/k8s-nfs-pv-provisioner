@@ -1,0 +1,5 @@
+- name: Provision the vagrant machine
+  hosts: localhost
+  roles:
+    - vagrant
+    - microk8s

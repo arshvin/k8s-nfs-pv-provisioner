@@ -8,24 +8,13 @@ metadata:
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: fake-storage-class
-provisioner: fake-vendor/fake-storage-provioner
+  name: nfs-storage-class
+provisioner: fake-vendor/nfs-storage-provioner
 reclaimPolicy: Delete
 parameters:
   outerAssetRoot: /mnt/efs/
   ownerNewAssetUid: "1000"
   ownerNewAssetGid: "1000"
-
----
-
-apiVersion: v1
-data:
-  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnbHVzdm4tc3Q5MTQ3MDQubmEubm92YXJ0aXMubmV0OjEwMDAxIjogewoJCQkiYXV0aCI6ICJaRzlqYTJWeVgzSnZNVHB4ZDJWeWRIbGhjMlJtTVE9PSIKCQl9Cgl9LAoJIkh0dHBIZWFkZXJzIjogewoJCSJVc2VyLUFnZW50IjogIkRvY2tlci1DbGllbnQvMTkuMDMuMSAobGludXgpIgoJfQp9
-kind: Secret
-metadata:
-  name: legacy-nexus
-  namespace: pv-provisioner
-type: kubernetes.io/dockerconfigjson
 
 ---
 
@@ -94,14 +83,14 @@ spec:
         - name: provisioner
           args:
             - -inner-asset-root=/pv
-            - -storage-class=fake-storage-class
-          image: localhost:32000/fake-provisioner:0.0.1
+            - -storage-class=nfs-storage-class
+          image: microk8s:32000/nfs-provisioner:0.0.1
           volumeMounts:
             - mountPath: /pv/
               name: data
       volumes:
         - name: data
           hostPath:
-            path: /mnt/efs/
+            path: /mnt/nfs/
             type: Directory
       dnsPolicy: Default

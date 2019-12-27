@@ -45,4 +45,4 @@ spec:
   resources:
     requests:
       storage: 8Gi
-  storageClassName: fake-storage-class
+  storageClassName: nfs-storage-class

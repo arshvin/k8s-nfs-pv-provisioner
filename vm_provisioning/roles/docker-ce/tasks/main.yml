@@ -1,0 +1,35 @@
+- name: Add docker-ce repo
+  yum_repository:
+    name: docker-ce
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+    gpgcheck: yes
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    skip_if_unavailable: yes
+    description: Docker CE Stable - $basearch
+
+- name: Add Docker CE required packages
+  yum:
+    state: present
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - docker-ce
+
+- name: Add Docker Python module
+  pip:
+    name: docker-py
+    state: present
+
+- name: Add user into docker group
+  user:
+    name: vagrant
+    groups:
+      - docker
+    append: yes
+
+- name: Docker start
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
