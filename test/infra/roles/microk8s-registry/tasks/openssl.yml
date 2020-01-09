@@ -1,0 +1,14 @@
+---
+- name: Create openssl.conf for generating cert and key
+  template:
+    src: openssl.conf
+    dest: "{{role_tmp_directory}}"
+
+- name: Create openssl.conf for generating cert and key
+  template:
+    src: cert-create.sh
+    dest: "{{role_tmp_directory}}"
+    mode: 0755
+
+- name: Launch script to generate self signed key and cert
+  shell: "{{role_tmp_directory}}/cert-create.sh"

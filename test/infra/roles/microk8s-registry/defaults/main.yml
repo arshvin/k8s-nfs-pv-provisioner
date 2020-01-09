@@ -1,0 +1,1 @@
+proxy_cert_file: /etc/ssl/certs/registry.pem

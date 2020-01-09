@@ -1,0 +1,16 @@
+---
+- name: Bring the golang archive to the system
+  unarchive:
+    src: "{{ golang_source_url }}"
+    dest: /usr/local/
+    mode: 0755
+    remote_src: yes
+
+- name: Create the symlink to the binary
+  file:
+    state: link
+    src: "/usr/local/go/bin/{{ item }}"
+    dest: "/bin/{{ item }}"
+  loop:
+  - go
+  - gofmt

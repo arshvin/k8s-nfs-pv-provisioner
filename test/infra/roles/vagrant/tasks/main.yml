@@ -1,0 +1,30 @@
+- name: Install additional tools
+  yum:
+    name:
+      - strace
+      - tcpdump
+      - wireshark
+      - git
+      - jq
+      - tree
+      - vim
+
+- name: Creating vimrc file in user profile
+  become: yes
+  become_user: vagrant
+  lineinfile:
+    create: yes
+    path: ~/.vimrc
+    line: "{{item}}"
+  with_items:
+    - set tabstop=4
+    - set expandtab
+    - set shiftwidth=4
+    - set softtabstop=4
+    - set autoindent
+
+- name: Customise the bash view
+  template:
+    src: user_env.j2.sh
+    dest: /etc/profile.d/user_env.sh
+    mode: 0644

@@ -1,0 +1,2 @@
+golang_version: 1.13.8
+golang_source_url: https://dl.google.com/go/go{{ golang_version }}.linux-amd64.tar.gz

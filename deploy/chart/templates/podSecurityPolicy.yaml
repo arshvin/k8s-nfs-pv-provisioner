@@ -1,0 +1,31 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ .Values.podSecurityPolicyName | default .Release.Name | quote }}
+spec:
+  privileged: false
+  allowPrivilegeEscalation: true
+  defaultAllowPrivilegeEscalation: true
+  allowedFlexVolumes: []
+  readOnlyRootFilesystem: false
+  allowedCapabilities: []
+  defaultAddCapabilities: []
+  fsGroup:
+    rule: RunAsAny
+  hostIPC: false
+  hostNetwork: false
+  hostPID: false
+  hostPorts: []
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+    - hostPath
+    - secret
+    - downwardAPI
+  allowedHostPaths:
+    - pathPrefix: {{ .Values.storageClass.parameters.assetRoot }}
+      readOnly: false

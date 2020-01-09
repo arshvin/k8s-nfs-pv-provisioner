@@ -1,0 +1,23 @@
+- name: Provision the vagrant machine
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    tmp_directory: /tmp/vm-deployment
+  post_tasks:
+  - name: Clean the tmp directory
+    file:
+      state: absent
+      path: "{{ tmp_directory }}"
+  roles:
+    - role: vagrant
+      tags:
+      - vagrant
+    - role: microk8s
+      tags:
+      - microk8s
+    - role: microk8s-registry
+      tags:
+      - microk8s-registry
+    - role: golang
+      tags:
+      - golang

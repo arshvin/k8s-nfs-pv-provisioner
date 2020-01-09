@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
       end
   
-      node.vm.provision "shell", path: "./vm_provisioning/provisioning.sh", args: vagrant_share, keep_color: true
+      node.vm.provision "shell", path: "./test/infra/provisioning.sh", args: vagrant_share, keep_color: true
     end
   end
   

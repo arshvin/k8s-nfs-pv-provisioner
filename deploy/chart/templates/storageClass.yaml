@@ -1,0 +1,16 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+{{- with .Values.storageClass }}
+metadata:
+  name: {{ .name | quote }}
+  {{- if .isDefaultClass | default false }}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  {{- end }}
+provisioner: {{ .provisionerName | quote }}
+reclaimPolicy: {{ .reclaimPolicy | quote }}
+parameters:
+  assetRoot: {{ .parameters.assetRoot | quote }}
+  defaultOwnerAssetUid: {{ .parameters.defaultOwnerAssetUid | quote }}
+  defaultOwnerAssetGid: {{ .parameters.defaultOwnerAssetGid | quote }}
+{{ end }}

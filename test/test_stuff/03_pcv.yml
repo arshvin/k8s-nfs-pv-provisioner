@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc01
+  namespace: test-01
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc02
+  namespace: test-01
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc03
+  namespace: test-01
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc04
+  namespace: test-01
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: some-storage-class
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc05
+  namespace: test-01
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      release: "stable"
+    matchExpressions:
+      - { key: environment, operator: In, values: [dev] }
+  storageClassName: nfs-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc06
+  namespace: test-01
+  annotations:
+    storage.asset/owner-uid: "999"
+    storage.asset/owner-gid: "998"
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-storage

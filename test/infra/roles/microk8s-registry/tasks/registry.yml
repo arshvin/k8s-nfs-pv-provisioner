@@ -1,0 +1,14 @@
+---
+# The cycle is a workaround of the issue in which the required components are not installed for first time.
+# Probably it's due to unreadiness of microk8s for some time afer installation or or due to whatever else.
+- name: Install embedded registry for images and dns for it
+  shell: | 
+    while ! /var/lib/snapd/snap/bin/microk8s.enable {{ component }}; do 
+      echo Sleeping 1 second;
+      sleep 1; 
+    done
+  loop: #The list should have this order: first is "dns" and futher is "registry" intentionally
+  - dns
+  - registry
+  loop_control:
+    loop_var: component

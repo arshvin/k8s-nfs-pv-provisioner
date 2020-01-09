@@ -1,0 +1,24 @@
+---
+- import_tasks: registry.yml
+
+- name: Set fact for tmp directory
+  set_fact:
+    role_tmp_directory: "{{ tmp_directory }}/ssl"
+
+- name: Create tmp directory
+  file:
+    path: "{{ role_tmp_directory }}"
+    state: directory
+
+- import_tasks: openssl.yml
+
+- name: Set fact for tmp directory
+  set_fact:
+    role_tmp_directory: "{{ tmp_directory }}/registry"
+
+- name: Create tmp directory
+  file:
+    path: "{{ role_tmp_directory }}"
+    state: directory
+
+- import_tasks: registry-proxy.yml

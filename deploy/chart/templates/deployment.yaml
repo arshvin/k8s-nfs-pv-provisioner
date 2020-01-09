@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name | quote }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name | quote }}
+    {{ $tag := .Chart.AppVersion }}
+    {{- with .Values }}
+    spec:
+      serviceAccountName: {{ .serviceAccount.name | quote }}
+      containers:
+        - name: provisioner
+          args:
+            - serve
+            - --storage-asset-root
+            - {{ .innerAssetRoot }}
+            - --storage-class
+            - {{ .storageClass.name }}
+          image: {{ .imageName }}:{{ $tag }}
+          volumeMounts:
+            - mountPath: {{ .innerAssetRoot | quote}}
+              name: data
+      volumes:
+        - name: data
+          hostPath:
+            path: {{ .storageClass.parameters.assetRoot | quote }}
+            type: Directory
+      dnsPolicy: Default
+    {{- end }}

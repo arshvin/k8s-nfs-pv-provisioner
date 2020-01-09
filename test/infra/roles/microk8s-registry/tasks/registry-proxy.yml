@@ -1,0 +1,9 @@
+---
+- name: Copy manifest to deploy TLS-terminated proxy server for registry
+  template:
+    src: registry-proxy.yml
+    dest: "{{role_tmp_directory}}/"
+
+- name: Deploy the secured-proxy for the registry
+  shell: "/var/lib/snapd/snap/bin/microk8s.kubectl apply -f {{ role_tmp_directory }}"
+  

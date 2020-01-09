@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pv-provisioner
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: persistent-volume-provisioner
+  namespace: pv-provisioner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pv-provisioner
+  template:
+    metadata:
+      labels:
+        app: pv-provisioner
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: provisioner
+          args:
+            - serve
+            - --storage-asset-root
+            - /pv/
+            - --storage-class
+            - nfs-storage
+          image: microk8s:32001/nfs-provisioner:0.0.1
+          volumeMounts:
+            - mountPath: /pv/
+              name: data
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/nfs/
+            type: Directory
+      dnsPolicy: Default
