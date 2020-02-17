@@ -82,7 +82,7 @@ func CreateStorageAsset(baseName string, uid, gid int) (string, error) {
 	klog.Infof("Storage asset: %v was successfully created", appStorageAssetRoot)
 
 	if err := os.Chown(appStorageAssetRoot, uid, gid); err != nil {
-		
+
 		return "", err
 	}
 

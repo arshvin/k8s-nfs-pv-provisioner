@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ .Values.clusterRoleBindingName | default .Release.Name | quote }}
+  labels:
+    {{- include "nfs-pv-provision.labels" . | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.serviceAccount.name }}

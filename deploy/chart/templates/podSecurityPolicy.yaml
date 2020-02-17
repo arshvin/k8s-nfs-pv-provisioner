@@ -2,6 +2,8 @@ apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: {{ .Values.podSecurityPolicyName | default .Release.Name | quote }}
+  labels:
+    {{- include "nfs-pv-provision.labels" . | nindent 4 }}
 spec:
   privileged: false
   allowPrivilegeEscalation: true

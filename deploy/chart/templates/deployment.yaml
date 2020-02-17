@@ -2,16 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name | quote }}
-  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "nfs-pv-provision.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name | quote }}
+      {{- include "nfs-pv-provision.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name | quote }}
+        {{- include "nfs-pv-provision.selectorLabels" . | nindent 8 }}
     {{ $tag := .Chart.AppVersion }}
     {{- with .Values }}
     spec:
