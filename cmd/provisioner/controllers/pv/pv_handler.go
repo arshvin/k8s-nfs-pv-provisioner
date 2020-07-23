@@ -3,6 +3,7 @@ package pv
 import (
 	"k8s-pv-provisioner/cmd/provisioner/config"
 	"k8s-pv-provisioner/cmd/provisioner/storage"
+	"path"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +30,8 @@ func Handler(indexer cache.Indexer, key string) error {
 		if IsReleasedPV(pv) {
 			if allChecksPassed(predicates, pv) {
 
-				if err := storage.DeleteStorageAsset(pv); err != nil {
+				storageAssetPath := path.Join(appConfig.StorageAssetRoot, pv.Spec.StorageClassName, pv.Name)
+				if err := storage.DeleteStorageAsset(storageAssetPath); err != nil {
 					klog.Errorf("PersistentVolume: %v deleting storage asset failed: %v", pv.Name, err)
 					return err
 				}

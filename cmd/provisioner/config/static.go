@@ -7,8 +7,12 @@ const (
 	AnnotationStorageClass = "volume.beta.kubernetes.io/storage-class"
 	/*AnnotationStorageProvisioner is annotation used in a PVC*/
 	AnnotationStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
-	/*AnnotationOwnerNewAssetUID is a additional parameter in the Storage Class*/
+
+	/*AnnotationOwnerNewAssetUID is the annotation, value of which is able to override the parameter.defaultOwnerAssetUid value of storage class (deprecated)*/
 	AnnotationOwnerNewAssetUID = "storage.asset/owner-uid"
-	/*AnnotationOwnerNewAssetGID is a additional parameter in the Storage Class*/
+	/*AnnotationOwnerNewAssetGID is the annotation, value of which is able to override the parameter.defaultOwnerAssetGid value of storage class (deprecated)*/
 	AnnotationOwnerNewAssetGID = "storage.asset/owner-gid"
+
+	/*AnnotationReclaimPolicy is the annotation, value of which is able to override reclaimPolicy value of storage class for particular PVC*/
+	AnnotationReclaimPolicy = "volume.pv.provisioner/reclaim-policy"
 )

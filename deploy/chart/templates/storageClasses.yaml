@@ -1,0 +1,21 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClassList
+{{ $labels := include "nfs-pv-provision.labels" . }}
+items:
+{{- range .Values.storageClasses  }}
+- apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    labels: {{ $labels | nindent 6 }}
+    name: {{ .name | quote }}
+    {{- if .isDefaultClass | default false }}
+    annotations:
+      storageclass.kubernetes.io/is-default-class: "true"
+    {{- end }}
+  provisioner: {{ .provisionerName | quote }}
+  reclaimPolicy: {{ .reclaimPolicy | quote }}
+  parameters:
+    assetRoot: {{ .parameters.assetRoot | quote }}
+    defaultOwnerAssetUid: {{ .parameters.defaultOwnerAssetUid | quote }}
+    defaultOwnerAssetGid: {{ .parameters.defaultOwnerAssetGid | quote }}
+{{- end }}

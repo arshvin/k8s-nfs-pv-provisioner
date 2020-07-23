@@ -14,25 +14,28 @@ spec:
       labels:
         {{- include "nfs-pv-provision.selectorLabels" . | nindent 8 }}
     {{ $tag := .Chart.AppVersion }}
-    {{- with .Values }}
     spec:
-      serviceAccountName: {{ .serviceAccount.name | quote }}
+      serviceAccountName: {{ include "nfs-pv-provision.serviceAccountName" . }}
       containers:
         - name: provisioner
           args:
             - serve
             - --storage-asset-root
-            - {{ .innerAssetRoot }}
-            - --storage-class
-            - {{ .storageClass.name }}
-          image: {{ .imageName }}:{{ $tag }}
+            - {{ .Values.innerAssetRoot }}
+            - --storage-classes
+            - {{ include "nfs-pv-provision.storageClassesList" . }}
+          image: {{ .Values.imageName }}:{{ $tag }}
           volumeMounts:
-            - mountPath: {{ .innerAssetRoot | quote}}
-              name: data
+          {{- $innerAssetRoot := .Values.innerAssetRoot}}
+          {{- range .Values.storageClasses }}
+            - mountPath: {{ list $innerAssetRoot .name | join "/" | quote}}
+              name: {{ .name }}
+          {{- end }}
       volumes:
-        - name: data
+      {{- range .Values.storageClasses }}
+        - name: {{ .name }}
           hostPath:
-            path: {{ .storageClass.parameters.assetRoot | quote }}
+            path: {{ .parameters.assetRoot | quote }}
             type: Directory
+      {{- end }}
       dnsPolicy: Default
-    {{- end }}

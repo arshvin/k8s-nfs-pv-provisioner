@@ -5,19 +5,36 @@ imageName: microk8s:32001/nfs-provisioner
 innerAssetRoot: /pv
 
 #The stucture based on which the storage class will be created in k8s
-storageClass:
-  name: nfs-storage
-  isDefaultClass: false
-  provisionerName: fake-vendor/nfs-storage-provisioner
+storageClasses:
+- name: storage-class1
+  isDefaultClass: true
+  provisionerName: some-vendor/some-provioner1
   reclaimPolicy: Delete
   parameters:
-    assetRoot: /mnt/nfs/
+    assetRoot: /mnt/pv-root1/
     defaultOwnerAssetUid: "1000"
     defaultOwnerAssetGid: "1000"
+- name: storage-class2
+  isDefaultClass: false
+  provisionerName: some-vendor/some-provioner2
+  reclaimPolicy: Retain
+  parameters:
+    assetRoot: /mnt/pv-root2/
+    defaultOwnerAssetUid: "99"
+    defaultOwnerAssetGid: "99"
+- name: storage-class3
+  isDefaultClass: false
+  provisionerName: some-vendor/some-provioner3
+  reclaimPolicy: Retain
+  parameters:
+    assetRoot: /mnt/pv-root3/
+    defaultOwnerAssetUid: "192"
+    defaultOwnerAssetGid: "192"
 
 #The service's account detail behalf the provisoner will run in k8s
 serviceAccount:
-  name: pv-provisioner
+  create: true
+  name: ""
   imagePullSecrets: []
 
 #The name of the cluster role name. by default Release.Name is used

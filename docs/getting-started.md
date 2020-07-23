@@ -101,11 +101,13 @@ Our check list is:
 
 To build the docker image which will be deployed into K8S, the command should be launched. Let's for example the tag will be __0.0.1__:
 ```bash
-docker build /vagrant/ -t microk8s:32001/nfs-provisioner:0.0.1
+export tag=0.0.1
+docker build /vagrant/ -t microk8s:32001/nfs-provisioner:$tag && docker push microk8s:32001/nfs-provisioner:$tag
+```
+The key lines of command output, which can help to be suer that the result is successful are
+```bash
 ...
 Successfully tagged microk8s:32001/nfs-provisioner:0.0.1
-
-[vagrant@microk8s ~]$ docker push microk8s:32001/nfs-provisioner:0.0.1
 ...
 0.0.1: digest: sha256:ec658fa209c9d64a2d79b7397e9e2ddca5a9d7e5ff2b8c75ff877b744f9227e0 size: 740
 ```

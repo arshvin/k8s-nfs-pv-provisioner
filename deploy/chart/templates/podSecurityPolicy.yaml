@@ -2,8 +2,7 @@ apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: {{ .Values.podSecurityPolicyName | default .Release.Name | quote }}
-  labels:
-    {{- include "nfs-pv-provision.labels" . | nindent 4 }}
+  labels: {{ include "nfs-pv-provision.labels" . | nindent 4 }}
 spec:
   privileged: false
   allowPrivilegeEscalation: true
@@ -29,5 +28,7 @@ spec:
     - secret
     - downwardAPI
   allowedHostPaths:
-    - pathPrefix: {{ .Values.storageClass.parameters.assetRoot }}
+    {{- range .Values.storageClasses }}
+    - pathPrefix: {{ .parameters.assetRoot }}
       readOnly: false
+    {{- end }}

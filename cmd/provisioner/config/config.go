@@ -3,6 +3,7 @@ package config
 import (
 	"strconv"
 
+	core_v1 "k8s.io/api/core/v1"
 	storage_v1 "k8s.io/api/storage/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
@@ -20,27 +21,35 @@ type storageClass struct {
 	StorageAssetRoot string
 	//Provisioner is name of the provisioner that will be specified in annotations for provisioned PVs
 	Provisioner string
+	//ReclaimPolicy is value of *v1.PersistentVolumeReclaimPolicy which should have one of Recycle, Delete, Retain
+	ReclaimPolicy *core_v1.PersistentVolumeReclaimPolicy
 }
 
-var config *appConfig
+var config *AppConfig
 
 /*GetInstance is the method returning the appConfig singleton object */
-func GetInstance() *appConfig {
+func GetInstance() *AppConfig {
 	if config == nil {
-		config = new(appConfig)
+		config = new(AppConfig)
+		config.StorageClasses = make(StorageClassesMap)
 	}
 	return config
 }
 
-/*ParseStorageClass method parses "k8s.io/api/storage/v1.StorageClass" struc's values*/
-func (conf *appConfig) ParseStorageClass(class *storage_v1.StorageClass) {
-	conf.StorageClass.Name = class.Name
-	conf.StorageClass.Provisioner = class.Provisioner
-	conf.StorageClass.DefaultOwnerAssetUID = (getStorageClassParameters(class, "defaultOwnerAssetUid", 1)).(int)
-	conf.StorageClass.DefaultOwnerAssetGID = (getStorageClassParameters(class, "defaultOwnerAssetGid", 1)).(int)
-	conf.StorageClass.StorageAssetRoot = (getStorageClassParameters(class, "assetRoot", "")).(string)
+/*ParseStorageClass is a method for parsing "k8s.io/api/storage/v1.StorageClass" struc to fill appConfig.ParseStorageClass map*/
+func (conf *AppConfig) ParseStorageClass(class *storage_v1.StorageClass) {
+	sc := new(storageClass)
+	sc.Name = class.Name
+	sc.Provisioner = class.Provisioner
+	sc.ReclaimPolicy = class.ReclaimPolicy
+	sc.DefaultOwnerAssetUID = (getStorageClassParameters(class, "defaultOwnerAssetUid", 1)).(int)
+	sc.DefaultOwnerAssetGID = (getStorageClassParameters(class, "defaultOwnerAssetGid", 1)).(int)
+	sc.StorageAssetRoot = (getStorageClassParameters(class, "assetRoot", "")).(string)
+
+	conf.StorageClasses[sc.Name] = *sc
 }
 
+//TODO: Refactor this function
 func getStorageClassParameters(class *storage_v1.StorageClass, paramName string, castTo interface{}) interface{} {
 	tmpStr, ok := class.Parameters[paramName]
 	if !ok {
@@ -61,9 +70,12 @@ func getStorageClassParameters(class *storage_v1.StorageClass, paramName string,
 	}
 }
 
+/*StorageClassesMap is the map of storage classes that the provisioner will serve*/
+type StorageClassesMap map[string]storageClass
+
 /*AppConfig is the config stucture for whole app which is supposed to be filled at the start of the programm*/
-type appConfig struct {
-	StorageClass     storageClass
+type AppConfig struct {
+	StorageClasses   StorageClassesMap
 	StorageAssetRoot string
 	Clientset        *kubernetes.Clientset
 }

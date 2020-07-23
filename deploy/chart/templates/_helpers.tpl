@@ -53,3 +53,23 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- toYaml . | nindent 0 }}
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "nfs-pv-provision.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+    {{ default (include "nfs-pv-provision.fullname" .) .Values.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "nfs-pv-provision.storageClassesList" -}}
+{{- $classNames := list  -}}
+{{- range .Values.storageClasses -}}
+{{- $classNames = append $classNames .name -}}
+{{- end -}}
+{{ $classNames | join "," }}
+{{- end -}}

@@ -8,7 +8,7 @@ metadata:
     app: nginx
   namespace: test-01
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: nginx
@@ -32,17 +32,3 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: pvc02
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pvc02
-  namespace: test-01
-spec:
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 8Gi
-  storageClassName: nfs-storage-class

@@ -23,12 +23,15 @@ func IsReleasedPV(pv *v1.PersistentVolume) bool {
 }
 
 func IsProperProvisionedByAnnotation(pv *v1.PersistentVolume) bool {
+	storageClassName := pv.Spec.StorageClassName
+	currentStorageClass := appConfig.StorageClasses[storageClassName]
+
 	value, ok := pv.Annotations[config.AnnotationProvisionedBy]
-	if ok && value == appConfig.StorageClass.Provisioner {
+	if ok && value == currentStorageClass.Provisioner {
 		return true
 	}
 
-	klog.V(2).Infof("PersistentVolume: %v does not have annotation specifying onto the provisioner: %v", pv.Name, appConfig.StorageClass.Provisioner)
+	klog.V(2).Infof("PersistentVolume: %v does not have annotation specifying onto the provisioner: %v", pv.Name, currentStorageClass.Provisioner)
 	return false
 }
 
@@ -40,6 +43,14 @@ func HasProperReclaimPolicy(pv *v1.PersistentVolume) bool {
 	klog.V(2).Infof("PersistentVolume: %v does not have proper reclaimPolicy", pv.Name)
 	return false
 
+}
+
+func HasProperClassName(pv *v1.PersistentVolume) bool {
+	storageClassName := pv.Spec.StorageClassName
+	if _, present := appConfig.StorageClasses[storageClassName]; present {
+		return true
+	}
+	return false
 }
 
 func allChecksPassed(predicates []func(*v1.PersistentVolume) bool, input *v1.PersistentVolume) bool {

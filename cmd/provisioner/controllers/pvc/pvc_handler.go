@@ -25,7 +25,8 @@ func Handler(indexer cache.Indexer, key string) error {
 	} else {
 		pvc := obj.(*v1.PersistentVolumeClaim)
 
-		if !IsBoundPVC(pvc) { //If it is then we simply forget about it by returning nil as err from this handler
+		//TODO: Refactor this block
+		if !IsBoundPVC(pvc) {
 			if allChecksPassed(predicates, pvc) {
 
 				klog.V(1).Infof("PersistentVolumeClaim looks like a candidate for provisioning: %v", pvc.Name)
@@ -43,7 +44,7 @@ func Handler(indexer cache.Indexer, key string) error {
 				}
 			} else {
 				if HasProperStorageClassName(pvc) {
-					return fmt.Errorf("Not all checks have been passed for persistentVolumeClaim for provisioning: %v", pvc.Name)
+					return fmt.Errorf("Not all checks of persistentVolumeClaim have been passed to continue provisioning: %v", pvc.Name)
 				}
 			}
 		}
