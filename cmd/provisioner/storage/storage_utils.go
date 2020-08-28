@@ -67,22 +67,27 @@ func CastToInt(value string) (int, error) {
 }
 
 //CreateStorageAsset is func which creates the storage asset
-func CreateStorageAsset(assetPath string, uid, gid int) error {
+func CreateStorageAsset(assetPath string, uid, gid int, reuseExisting bool) error {
 
-	if _, err := os.Stat(assetPath); err == nil {
+	if _, err := os.Stat(assetPath); err == nil && !reuseExisting {
 		return fmt.Errorf("Storage asset: %v already exists", assetPath)
 	}
-
+	//If assetPath already exists os.MkdirAll does nothing
 	if err := os.MkdirAll(assetPath, 0755); os.IsPermission(err) {
 		return err
 	}
 
-	klog.Infof("Storage asset: %v was successfully created", assetPath)
+	var action string
+	if reuseExisting {
+		action = "reused"
+	} else {
+		action = "created"
+	}
+	klog.Infof("Storage asset: %v was successfully %v", assetPath, action)
 
 	if err := os.Chown(assetPath, uid, gid); err != nil {
 		return err
 	}
-
 	klog.Infof("Storage asset: %v ownership was set as %v:%v", assetPath, uid, gid)
 
 	return nil

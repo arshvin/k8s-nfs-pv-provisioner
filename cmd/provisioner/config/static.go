@@ -15,4 +15,6 @@ const (
 
 	/*AnnotationReclaimPolicy is the annotation, value of which is able to override reclaimPolicy value of storage class for particular PVC*/
 	AnnotationReclaimPolicy = "volume.pv.provisioner/reclaim-policy"
+	/*AnnotationUseExistingAsset is the annotation which allows to reuse existing storage asset if any during provision process for PV*/
+	AnnotationUseExistingAsset = "storage-asset.pv.provisioner/reuse-existing"
 )

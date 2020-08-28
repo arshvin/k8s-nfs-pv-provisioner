@@ -28,7 +28,7 @@ items:
     annotations:
       storage-asset.pv.provisioner/owner-uid: "998" #New type of annotation
       storage-asset.pv.provisioner/owner-gid: "998" #New type of annotation
-      volume.pv.provisioner/reclaim-policy: Delete
+      storage-asset.pv.provisioner/reuse-existing: "true"
   spec:
     accessModes:
       - ReadWriteMany
@@ -61,8 +61,8 @@ items:
     name: pvc04
     namespace: test-01
     annotations:
-      # volume.pv.provisioner/reclaim-policy: Retain
-      volume.pv.provisioner/reclaim-policy: Delete
+      volume.pv.provisioner/reclaim-policy: Retain
+      storage-asset.pv.provisioner/reuse-existing: "true"
   spec:
     accessModes:
       - ReadWriteMany

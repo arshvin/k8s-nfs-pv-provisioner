@@ -1,5 +1,6 @@
 # Change list
-* 0.2.6 - Bug fixes
+* 0.3.0 - Added the feature of reusing existing storage asset if there is annotation `storage-asset.pv.provisioner/reuse-existing` on PVC
+* 0.2.1 ... 0.2.6 - Bug fixes
 * 0.2.0 - Added:
   1. ability to pass more than one storage class name through CLI flag as comma separated list of names.
   2. processing of `ReclaimPolicy` of the storage class. Earlier the "Delete" reclaim policy was assigned to PV as hard coded value

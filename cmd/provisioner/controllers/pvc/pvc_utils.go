@@ -21,7 +21,11 @@ func provisionPVfor(pvc *v1.PersistentVolumeClaim) (*v1.PersistentVolume, error)
 	/*pvStorageAssetPath is the full path to storage asset (folder) as it is seen or reachable from host OS i.e. out from of the provisioner*/
 	pvStorageAssetPath := path.Join(currentStorageClass.StorageAssetRoot, storageAssetBaseName) // e.g. -> /mnt/nfs/sbx-namespace-some-app
 
-	err := storage.CreateStorageAsset(appStorageAssetPath, uid, gid)
+	var reuseExistingAsset bool
+	if _, present := pvc.Annotations[config.AnnotationUseExistingAsset]; present {
+		reuseExistingAsset = true
+	}
+	err := storage.CreateStorageAsset(appStorageAssetPath, uid, gid, reuseExistingAsset)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +35,7 @@ func provisionPVfor(pvc *v1.PersistentVolumeClaim) (*v1.PersistentVolume, error)
 	annotations[config.AnnotationStorageClass] = currentStorageClass.Name
 
 	var reclaimPolicy v1.PersistentVolumeReclaimPolicy
-	if value, ok := pvc.ObjectMeta.Annotations[config.AnnotationReclaimPolicy]; ok {
+	if value, ok := pvc.Annotations[config.AnnotationReclaimPolicy]; ok {
 		reclaimPolicy = v1.PersistentVolumeReclaimPolicy(value)
 	} else {
 		reclaimPolicy = *currentStorageClass.ReclaimPolicy
