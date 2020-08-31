@@ -13,7 +13,8 @@ import (
 var appConfig = config.GetInstance()
 
 /*Handler is the business logic method of the Controller to provision PersistentVolumes for corresponding PersistentVolumeClaims.
-Once the hadler returns an error the current key will be put to the queue to be processed later */
+Once the handler returns an error the current key will be put to the queue to be processed later. If the method returns nil the key
+will be withdrawn from the queue because there is no need to do anything with it */
 func Handler(indexer cache.Indexer, key string) error {
 	obj, exists, err := indexer.GetByKey(key)
 

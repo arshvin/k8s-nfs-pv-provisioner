@@ -2,9 +2,9 @@ package pv
 
 import (
 	"fmt"
+	"k8s-pv-provisioner/cmd/provisioner/checker"
 	"k8s-pv-provisioner/cmd/provisioner/config"
 	"k8s-pv-provisioner/cmd/provisioner/storage"
-	"k8s-pv-provisioner/cmd/provisioner/checker"
 	"path"
 
 	v1 "k8s.io/api/core/v1"
@@ -15,7 +15,9 @@ import (
 
 var appConfig = config.GetInstance()
 
-/*Handler is the business logic method of the Controller for deprovisioning of released PersistentVolumes*/
+/*Handler is the business logic method of the Controller for removal of PersistentVolumes.
+Once the handler returns an error the current key will be put to the queue to be processed later. If the method returns nil the key
+will be withdrawn from the queue because there is no need to do anything with it */
 func Handler(indexer cache.Indexer, key string) error {
 	obj, exists, err := indexer.GetByKey(key)
 

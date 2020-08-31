@@ -12,15 +12,11 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	v1 "k8s.io/api/core/v1"
 	storage_v1 "k8s.io/api/storage/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 )
 
@@ -139,6 +135,7 @@ func run(cmd *cobra.Command, args []string) {
 		klog.Fatal("Could not fetch list of storage classes")
 	}
 
+	//Collecting storage classes which the provisioner should serve
 	selected, err := selectClasses(clusterStorageClasses.Items, strings.Split(storageClassNames, ","))
 	if err != nil {
 		klog.Fatal(err)
@@ -147,35 +144,13 @@ func run(cmd *cobra.Command, args []string) {
 		appConfig.ParseStorageClass(&storageClass)
 	}
 
-	//Preparation steps for PVC controller
-	pvcListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "persistentvolumeclaims", meta_v1.NamespaceAll, fields.Everything())
-	pvcQueue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	pvcIndexer, pvcInformer := cache.NewIndexerInformer(pvcListWatcher, &v1.PersistentVolumeClaim{}, 0, cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			klog.V(4).Infof("Added object: %v", obj)
-			key, err := cache.MetaNamespaceKeyFunc(obj)
-			if err == nil {
-				pvcQueue.Add(key)
-				klog.V(2).Infof("The new persistentVolumeClaim was added: %v", key)
-			}
-		},
-	}, cache.Indexers{})
+	// //Preparation steps for PVC controller
+	pvcQueue, pvcIndexer, pvcInformer := controllers.PrepareStuff(clientset, "persistentvolumeclaims")
 	pvcCtrl := controllers.NewController("PersistentVolumeClaim", pvcQueue, pvcIndexer, pvcInformer)
 	pvcCtrl.ItemHandler = pvc.Handler
 
 	//Preparation steps for PV controller
-	pvListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "persistentvolumes", meta_v1.NamespaceNone, fields.Everything())
-	pvQueue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	pvIndexer, pvInformer := cache.NewIndexerInformer(pvListWatcher, &v1.PersistentVolume{}, 0, cache.ResourceEventHandlerFuncs{
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			klog.V(4).Infof("Changed object: %v", newObj)
-			key, err := cache.MetaNamespaceKeyFunc(newObj)
-			if err == nil {
-				pvQueue.Add(key)
-				klog.V(2).Infof("The persistentVolume was changed: %v", key)
-			}
-		},
-	}, cache.Indexers{})
+	pvQueue, pvIndexer, pvInformer := controllers.PrepareStuff(clientset, "persistentvolumes")
 	pvCtrl := controllers.NewController("PersistentVolume", pvQueue, pvIndexer, pvInformer)
 	pvCtrl.ItemHandler = pv.Handler
 
