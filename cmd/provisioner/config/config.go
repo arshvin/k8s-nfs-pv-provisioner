@@ -9,8 +9,8 @@ import (
 	"k8s.io/klog"
 )
 
-/*storageClass is set of the needed items for work fetched from "k8s.io/api/storage/v1" and few custom ones*/
-type storageClass struct {
+/*storageClassDetails is set of the needed items for work fetched from "k8s.io/api/storage/v1" and few custom ones*/
+type storageClassDetails struct {
 	//Name is the name of the storage class that will be specifeid in PersistentVolumeSpec
 	Name string
 	//DefaultOwnerAssetUID is default uid for new created assests if there are no annotations in PVCs overriding it
@@ -38,7 +38,7 @@ func GetInstance() *AppConfig {
 
 /*ParseStorageClass is a method for parsing "k8s.io/api/storage/v1.StorageClass" struc to fill appConfig.ParseStorageClass map*/
 func (conf *AppConfig) ParseStorageClass(class *storage_v1.StorageClass) {
-	sc := new(storageClass)
+	sc := new(storageClassDetails)
 	sc.Name = class.Name
 	sc.Provisioner = class.Provisioner
 	sc.ReclaimPolicy = class.ReclaimPolicy
@@ -71,7 +71,7 @@ func getStorageClassParameters(class *storage_v1.StorageClass, paramName string,
 }
 
 /*StorageClassesMap is the map of storage classes that the provisioner will serve*/
-type StorageClassesMap map[string]storageClass
+type StorageClassesMap map[string]storageClassDetails
 
 /*AppConfig is the config stucture for whole app which is supposed to be filled at the start of the programm*/
 type AppConfig struct {

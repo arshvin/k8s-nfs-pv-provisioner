@@ -2,8 +2,8 @@ FROM golang:1.13.1-alpine AS builder
 
 ENV CGO_ENABLED=0
 
-COPY ./go.* /build/
 WORKDIR /build/
+COPY ./go.* /build/
 RUN go mod download
 
 COPY . /build/

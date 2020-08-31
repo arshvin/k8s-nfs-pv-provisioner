@@ -1,8 +1,10 @@
 package pv
 
 import (
+	"fmt"
 	"k8s-pv-provisioner/cmd/provisioner/config"
 	"k8s-pv-provisioner/cmd/provisioner/storage"
+	"k8s-pv-provisioner/cmd/provisioner/checker"
 	"path"
 
 	v1 "k8s.io/api/core/v1"
@@ -24,24 +26,32 @@ func Handler(indexer cache.Indexer, key string) error {
 
 	if !exists {
 		klog.Warningf("PersistentVolume does not exists anymore: %v", key)
-	} else {
-		pv := obj.(*v1.PersistentVolume)
-
-		if IsReleasedPV(pv) {
-			if allChecksPassed(predicates, pv) {
-
-				storageAssetPath := path.Join(appConfig.StorageAssetRoot, pv.Spec.StorageClassName, pv.Name)
-				if err := storage.DeleteStorageAsset(storageAssetPath); err != nil {
-					klog.Errorf("PersistentVolume: %v deleting storage asset failed: %v", pv.Name, err)
-					return err
-				}
-
-				if err := appConfig.Clientset.CoreV1().PersistentVolumes().Delete(pv.Name, &metav1.DeleteOptions{}); err != nil {
-					return nil
-				}
-			}
-		}
+		return nil
 	}
+
+	pv := obj.(*v1.PersistentVolume)
+	checkList := checker.NewPvChecker(pv)
+	checkList.PerformChecks()
+
+	if !checkList.IsAllOK() {
+		if checkList.IsReleased() && checkList.HasProperClassName() && checkList.HasProperReclaimPolicy() {
+			return fmt.Errorf("Not all checks of persistentVolume have been passed for removal: %v", pv.Name)
+		}
+		//It's not our candidate at all. Forget about it
+		return nil
+	}
+
+	storageAssetPath := path.Join(appConfig.StorageAssetRoot, pv.Spec.StorageClassName, pv.Name)
+	if err := storage.DeleteStorageAsset(storageAssetPath); err != nil {
+		klog.Errorf("PersistentVolume: %v deleting storage asset failed: %v", pv.Name, err)
+		return err
+	}
+
+	if err := appConfig.Clientset.CoreV1().PersistentVolumes().Delete(pv.Name, &metav1.DeleteOptions{}); err != nil {
+		return err
+	}
+
+	klog.V(1).Infof("PersistentVolume successfully deleted: %v", pv.Name)
 
 	return nil
 }

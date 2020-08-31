@@ -70,3 +70,23 @@ items:
     resources:
       requests:
         storage: 5Gi
+
+# This one should not be provisioned because of a selectors
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: pvc05
+    namespace: test-01
+  spec:
+    accessModes:
+      - ReadWriteMany
+    volumeMode: Block
+    resources:
+      requests:
+        storage: 5Gi
+    selector:
+      matchLabels:
+        release: "stable"
+      matchExpressions:
+        - { key: environment, operator: In, values: [dev] }
+    storageClassName: storage-class2

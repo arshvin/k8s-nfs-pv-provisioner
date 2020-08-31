@@ -24,6 +24,8 @@ spec:
             - {{ .Values.innerAssetRoot }}
             - --storage-classes
             - {{ include "nfs-pv-provision.storageClassesList" . }}
+            - --v
+            - "2"
           image: {{ .Values.imageName }}:{{ $tag }}
           volumeMounts:
           {{- $innerAssetRoot := .Values.innerAssetRoot}}

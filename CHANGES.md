@@ -1,4 +1,5 @@
 # Change list
+* 0.3.1 - Cleaning the code in order to reworking PVC/PV checker approach
 * 0.3.0 - Added the feature of reusing existing storage asset if there is annotation `storage-asset.pv.provisioner/reuse-existing` on PVC
 * 0.2.1 ... 0.2.6 - Bug fixes
 * 0.2.0 - Added:

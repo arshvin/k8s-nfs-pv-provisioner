@@ -5,12 +5,20 @@ import (
 	"k8s-pv-provisioner/cmd/provisioner/storage"
 	"path"
 
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	core_v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	
 )
 
-//TODO: Refactor this approach
-func provisionPVfor(pvc *v1.PersistentVolumeClaim) (*v1.PersistentVolume, error) {
+type pvArguments struct {
+	name          string
+	pvc           *core_v1.PersistentVolumeClaim
+	reclaimPolicy core_v1.PersistentVolumeReclaimPolicy
+	annotations   map[string]string
+	assetPath     string
+}
+
+func preparePv(pvc *core_v1.PersistentVolumeClaim) (*core_v1.PersistentVolume, error) {
 	currentStorageClass := appConfig.StorageClasses[*pvc.Spec.StorageClassName]
 
 	uid, gid := storage.ChooseAssetOwner(pvc)
@@ -34,46 +42,56 @@ func provisionPVfor(pvc *v1.PersistentVolumeClaim) (*v1.PersistentVolume, error)
 	annotations[config.AnnotationProvisionedBy] = currentStorageClass.Provisioner
 	annotations[config.AnnotationStorageClass] = currentStorageClass.Name
 
-	var reclaimPolicy v1.PersistentVolumeReclaimPolicy
+	var reclaimPolicy core_v1.PersistentVolumeReclaimPolicy
 	if value, ok := pvc.Annotations[config.AnnotationReclaimPolicy]; ok {
-		reclaimPolicy = v1.PersistentVolumeReclaimPolicy(value)
+		reclaimPolicy = core_v1.PersistentVolumeReclaimPolicy(value)
 	} else {
 		reclaimPolicy = *currentStorageClass.ReclaimPolicy
 	}
 
-	hostPathType := new(v1.HostPathType)
-	*hostPathType = v1.HostPathDirectory
+	pvArgs := new(pvArguments)
+	pvArgs.name = storageAssetBaseName
+	pvArgs.assetPath = pvStorageAssetPath
+	pvArgs.annotations = annotations
+	pvArgs.reclaimPolicy = reclaimPolicy
+	pvArgs.pvc = pvc
 
-	pv := &v1.PersistentVolume{
-		TypeMeta: metav1.TypeMeta{
+	pv := getHostPathPV(pvArgs)
+	return pv, nil
+}
+
+func getHostPathPV(args *pvArguments) *core_v1.PersistentVolume {
+	hostPathType := new(core_v1.HostPathType)
+	*hostPathType = core_v1.HostPathDirectory
+
+	return &core_v1.PersistentVolume{
+		TypeMeta: meta_v1.TypeMeta{
 			Kind:       "PersistentVolume",
 			APIVersion: "1",
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        storageAssetBaseName,
-			Annotations: annotations,
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name:        args.name,
+			Annotations: args.annotations,
 		},
-		Spec: v1.PersistentVolumeSpec{
-			StorageClassName:              currentStorageClass.Name,
-			AccessModes:                   pvc.Spec.AccessModes,
-			Capacity:                      pvc.Spec.Resources.Requests,
-			VolumeMode:                    pvc.Spec.VolumeMode,
-			PersistentVolumeReclaimPolicy: reclaimPolicy,
-			ClaimRef: &v1.ObjectReference{
-				Kind:      pvc.Kind,
-				Name:      pvc.Name,
-				Namespace: pvc.Namespace,
-				UID:       pvc.UID,
+		Spec: core_v1.PersistentVolumeSpec{
+			StorageClassName:              *args.pvc.Spec.StorageClassName,
+			AccessModes:                   args.pvc.Spec.AccessModes,
+			Capacity:                      args.pvc.Spec.Resources.Requests,
+			VolumeMode:                    args.pvc.Spec.VolumeMode,
+			PersistentVolumeReclaimPolicy: args.reclaimPolicy,
+			ClaimRef: &core_v1.ObjectReference{
+				Kind:      args.pvc.Kind,
+				Name:      args.pvc.Name,
+				Namespace: args.pvc.Namespace,
+				UID:       args.pvc.UID,
 			},
-			PersistentVolumeSource: v1.PersistentVolumeSource{
-				HostPath: &v1.HostPathVolumeSource{
+			PersistentVolumeSource: core_v1.PersistentVolumeSource{
+				HostPath: &core_v1.HostPathVolumeSource{
 					Type: hostPathType,
-					Path: pvStorageAssetPath,
+					Path: args.assetPath,
 				},
 			},
 		},
-		Status: v1.PersistentVolumeStatus{},
+		Status: core_v1.PersistentVolumeStatus{},
 	}
-
-	return pv, nil
 }
