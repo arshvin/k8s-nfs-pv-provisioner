@@ -35,7 +35,7 @@ func ChooseAssetOwner(pvc *v1.PersistentVolumeClaim) (int, int) {
 
 	value, ok := pvc.Annotations[config.AnnotationOwnerNewAssetUID]
 	if ok {
-		uid, err = CastToInt(value)
+		uid, err = castToInt(value)
 		if err != nil {
 			uid = currentStorageClass.DefaultOwnerAssetUID
 			klog.Warningf("PersistentVolumeClaim: %v annotation: %v could not parse value: %v: %v", pvc.Name, config.AnnotationOwnerNewAssetUID, value, err)
@@ -46,7 +46,7 @@ func ChooseAssetOwner(pvc *v1.PersistentVolumeClaim) (int, int) {
 
 	value, ok = pvc.Annotations[config.AnnotationOwnerNewAssetGID]
 	if ok {
-		gid, err = CastToInt(value)
+		gid, err = castToInt(value)
 		if err != nil {
 			gid = currentStorageClass.DefaultOwnerAssetGID
 			klog.Warningf("PersistentVolumeClaim: %v annotation: %v could not parse value: %v: %v", pvc.Name, config.AnnotationOwnerNewAssetGID, value, err)
@@ -58,7 +58,7 @@ func ChooseAssetOwner(pvc *v1.PersistentVolumeClaim) (int, int) {
 	return uid, gid
 }
 
-func CastToInt(value string) (int, error) {
+func castToInt(value string) (int, error) {
 	id, err := strconv.ParseInt(value, 10, 32)
 	if err != nil {
 		return 0, err

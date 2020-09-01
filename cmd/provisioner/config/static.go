@@ -17,4 +17,10 @@ const (
 	AnnotationReclaimPolicy = "volume.pv.provisioner/reclaim-policy"
 	/*AnnotationUseExistingAsset is the annotation which allows to reuse existing storage asset if any during provision process for PV*/
 	AnnotationUseExistingAsset = "storage-asset.pv.provisioner/reuse-existing"
+
+	//TODO:Use these 2 new type annotations instead of the old
+	/*AnnotationOwnerNewAssetUID1 is the annotation, value of which is able to override the parameter.defaultOwnerAssetUid value of storage class*/
+	AnnotationOwnerNewAssetUID1 = "storage-asset.pv.provisioner/owner-uid"
+	/*AnnotationOwnerNewAssetGID1 is the annotation, value of which is able to override the parameter.defaultOwnerAssetGid value of storage class*/
+	AnnotationOwnerNewAssetGID1 = "storage-asset.pv.provisioner/owner-gid"
 )

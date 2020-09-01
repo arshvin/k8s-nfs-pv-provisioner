@@ -2,8 +2,9 @@ package pvc
 
 import (
 	"fmt"
-	"k8s-pv-provisioner/cmd/provisioner/config"
 	"k8s-pv-provisioner/cmd/provisioner/checker"
+	"k8s-pv-provisioner/cmd/provisioner/config"
+	"k8s-pv-provisioner/cmd/provisioner/storage"
 
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
@@ -42,7 +43,7 @@ func Handler(indexer cache.Indexer, key string) error {
 
 	klog.V(1).Infof("PersistentVolumeClaim looks like a candidate for provisioning: %v", pvc.Name)
 
-	pv, err := preparePv(pvc)
+	pv, err := storage.PreparePV(pvc)
 	if err != nil {
 		klog.Errorf("PersistentVolume provisioning for persistentVolumeClaim: %s failed: %s", pvc.Name, err)
 		return err

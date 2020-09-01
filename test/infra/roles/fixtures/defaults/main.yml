@@ -1,0 +1,8 @@
+---
+fixtures_nfs_export: /mnt/pv-nfs-root4/
+
+fixtures_folders:
+- /mnt/pv-root1/
+- /mnt/pv-root2/
+- /mnt/pv-root3/
+- "{{ fixtures_nfs_export }}"

@@ -1,0 +1,19 @@
+---
+- name: Install NFS server
+  yum:
+    name:
+    - nfs-utils
+    state: present
+
+- name: Update /etc/exports file
+  lineinfile:
+    path: /etc/exports
+    line: "{{ fixtures_nfs_export }} localhost(rw,no_root_squash)"
+
+- name: Start NFS server
+  systemd:
+    name: nfs
+    state: started
+
+- name: Reexport
+  shell: exportfs -vr

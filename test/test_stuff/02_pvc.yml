@@ -90,3 +90,18 @@ items:
       matchExpressions:
         - { key: environment, operator: In, values: [dev] }
     storageClassName: storage-class2
+
+# For this PVC the NFS-type PV should be created
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: pvc06
+    namespace: test-01
+  spec:
+    accessModes:
+      - ReadWriteMany
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: storage-class4

@@ -30,6 +30,14 @@ storageClasses:
     assetRoot: /mnt/pv-root3/
     defaultOwnerAssetUid: "192"
     defaultOwnerAssetGid: "192"
+- name: storage-class4
+  isDefaultClass: false
+  provisionerName: some-vendor/some-provioner4
+  reclaimPolicy: Retain
+  parameters:
+    assetRoot: localhost:/mnt/pv-nfs-root4/
+    defaultOwnerAssetUid: "192"
+    defaultOwnerAssetGid: "192"
 
 #The service's account detail behalf the provisoner will run in k8s
 serviceAccount:

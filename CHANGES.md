@@ -1,6 +1,7 @@
 # Change list
+* 0.4.0 - Implemented choosing of `nfs` or `hostPath` type volume depending on presence of colon sign in `assetRoot` of a storage class
 * 0.3.2 - Cleaning code in order to remove code duplication for starting controllers
-* 0.3.1 - Cleaning the code in order to reworking PVC/PV checker approach
+* 0.3.1 - Cleaning code in order to reworking PVC/PV checker approach
 * 0.3.0 - Added the feature of reusing existing storage asset if there is annotation `storage-asset.pv.provisioner/reuse-existing` on PVC
 * 0.2.1 ... 0.2.6 - Bug fixes
 * 0.2.0 - Added:

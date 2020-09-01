@@ -36,8 +36,15 @@ spec:
       volumes:
       {{- range .Values.storageClasses }}
         - name: {{ .name }}
+          {{- if contains ":" .parameters.assetRoot }}
+          {{- $assetItems := split ":" .parameters.assetRoot }}
+          nfs:
+            server: {{ $assetItems._0 }}
+            path:   {{ $assetItems._1 }}
+          {{- else }}
           hostPath:
             path: {{ .parameters.assetRoot | quote }}
             type: Directory
+          {{- end }}
       {{- end }}
       dnsPolicy: Default

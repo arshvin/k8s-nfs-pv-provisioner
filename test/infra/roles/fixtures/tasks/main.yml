@@ -1,0 +1,3 @@
+---
+- import_tasks: folders.yml
+- import_tasks: nfs_server.yml

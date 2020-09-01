@@ -21,3 +21,6 @@
     - role: golang
       tags:
       - golang
+    - role: fixtures
+      tags:
+      - fixtures

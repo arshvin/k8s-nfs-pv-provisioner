@@ -27,8 +27,12 @@ spec:
     - hostPath
     - secret
     - downwardAPI
+    - nfs
   allowedHostPaths:
     {{- range .Values.storageClasses }}
+    {{- /* To avoid NFS URLs to fall here */ -}}
+    {{- if not (contains ":" .parameters.assetRoot) }}
     - pathPrefix: {{ .parameters.assetRoot }}
       readOnly: false
+    {{- end }}
     {{- end }}
