@@ -1,5 +1,6 @@
 # Deployment with Helm chart
-In order to deploy the provisioner by Helm chart in vagrant machine it is needed to
+
+In order to deploy the provisioner by Helm chart in vagrant machine it is needed to:
 1. install `helm3` command if any with help the [page](https://helm.sh/docs/intro/install/) (maybe later it will be in provisioning machine stage)
 2. execute the commands like:
     ```bash

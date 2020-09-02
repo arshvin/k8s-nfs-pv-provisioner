@@ -1,5 +1,6 @@
 # Deployment with manifest
-In order to deploy the provisioner by only using a manifests the command is used:
+
+In order to deploy the provisioner only using a manifests the command is used:
 1. for install
     ```bash
     [vagrant] ~ > kubectl apply -f /vagrant/deploy/manifests/

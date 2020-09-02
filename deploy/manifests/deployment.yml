@@ -21,17 +21,17 @@ spec:
     spec:
       serviceAccountName: default
       containers:
-        - name: provisioner
-          args:
-            - serve
-            - --storage-asset-root
-            - /pv/
-            - --storage-class
-            - nfs-storage
-          image: microk8s:32001/nfs-provisioner:0.0.1
-          volumeMounts:
-            - mountPath: /pv/
-              name: data
+      - name: provisioner
+        args:
+          - serve
+          - --storage-asset-root
+          - /pv/
+          - --storage-classes
+            - storage1,storage2
+        image: microk8s:32001/nfs-provisioner:0.0.1
+        volumeMounts:
+        - mountPath: /pv/
+          name: data
       volumes:
         - name: data
           hostPath:

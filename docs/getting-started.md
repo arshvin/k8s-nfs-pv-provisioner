@@ -1,10 +1,13 @@
-# How to try and use it
-In the root of the project there is the `Vagrantfile` which is used for provisioning [Vagrant](https://www.vagrantup.com/) machine and installing [microk8s](https://microk8s.io/). The Vagrant and [VirtualBox](https://www.virtualbox.org/) are required. To start machine (_VM_) it's needed to invoke from host shell:
+# How to use it
+
+## Preparation steps
+
+There is the `Vagrantfile` in the root of the project which is used for provisioning [Vagrant](https://www.vagrantup.com/) machine and installing [microk8s](https://microk8s.io/). The Vagrant and [VirtualBox](https://www.virtualbox.org/) are required. To start machine (_VM_) it's needed to invoke from host shell:
 
 ```bash
 vagrant up
 ```
-The VM should be provisioned without any error in order to be ready to use. To check that VM is ready the couple of command will need to be invoked from the shell if provisioning process finished:
+The VM should be provisioned without any error in order to be ready to use. To check that the VM is ready the couple of command will need to be invoked from the shell if provisioning process finished:
 
 ```bash
 vagrant ssh
@@ -22,39 +25,22 @@ microk8s   Ready    <none>   14m   v1.15.6
 [vagrant@microk8s ~]$ docker ps
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 ```
-For PV it's needed to create directory `/mnt/nfs/`:
-```bash
-[vagrant@microk8s ~]$ sudo mkdir /mnt/nfs/
-```
-There are some manifests the `/vagrant/test/test_stuff/` directory to configure the test cluster and start to working on. To apply them from vagrant machine run the command:
+
+There are some manifests in the `/vagrant/test/test_stuff/` directory to create test stuff. To apply them from vagrant machine run the command:
+
 ```bash
 [vagrant@microk8s ~]$ kubectl apply -f /vagrant/test/test_stuff/
 namespace/test-01 created
-storageclass.storage.k8s.io/nfs-storage created
-storageclass.storage.k8s.io/some-storage-class created
-persistentvolume/pv01 created
-persistentvolume/pv02 created
-persistentvolume/pv03 created
-persistentvolume/pv04 created
-persistentvolume/pv05 created
 persistentvolumeclaim/pvc01 created
+persistentvolumeclaim/pvc02 created
 persistentvolumeclaim/pvc03 created
 persistentvolumeclaim/pvc04 created
 persistentvolumeclaim/pvc05 created
+persistentvolumeclaim/pvc06 created
 deployment.apps/nginx-deployment01 created
-persistentvolumeclaim/pvc02 created
 ```
 And checking the result:
 ```bash
-[vagrant@microk8s ~]$ kubectl get pv
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                               STORAGECLASS        REASON   AGE
-pv01                                       5Gi        RWX            Retain           Available                                                                    13s
-pv02                                       5Gi        RWO            Retain           Available                                                                    13s
-pv03                                       5Gi        RWO            Delete           Available                                                                    13s
-pv04                                       5Gi        RWO            Delete           Available                                                                    13s
-pv05                                       5Gi        RWO            Delete           Available                                                                    13s
-pvc-8bbada9a-5f13-478d-b9b0-aa9f60a52aef   20Gi       RWX            Delete           Bound       container-registry/registry-claim   microk8s-hostpath            10m
-
 [vagrant@microk8s ~]$ kubectl get pvc -A
 NAMESPACE            NAME             STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS         AGE
 container-registry   registry-claim   Bound     pvc-8bbada9a-5f13-478d-b9b0-aa9f60a52aef   20Gi       RWX            microk8s-hostpath    11m
@@ -99,19 +85,22 @@ Our check list is:
   * __kube-system/kube-dns__
   * __default/nginx__
 
+
+## Building
+
 To build the docker image which will be deployed into K8S, the command should be launched. Let's for example the tag will be __0.0.1__:
 ```bash
 export tag=0.0.1
 docker build /vagrant/ -t microk8s:32001/nfs-provisioner:$tag && docker push microk8s:32001/nfs-provisioner:$tag
 ```
-The key lines of command output, which can help to be suer that the result is successful are
+The key lines of command output, which can help to be sure that all succeeded are
 ```bash
 ...
 Successfully tagged microk8s:32001/nfs-provisioner:0.0.1
 ...
 0.0.1: digest: sha256:ec658fa209c9d64a2d79b7397e9e2ddca5a9d7e5ff2b8c75ff877b744f9227e0 size: 740
 ```
-To deploy the provisioner in the Microk8s and to watch the result are left a couple of commands. There are 2 ways to do it:
+To deploy the provisioner in the Microk8s and watch the result it left a couple of commands. There are 2 ways to do it:
 1. to use the manifests (read [here](./deploy-with-manifets.md))
 2. to use the Helm chart (read [here](./deploy-with-helm.md)):
 
@@ -119,11 +108,6 @@ When the provisioner started being working for the cluster the final steps are t
 ```bash
 [vagrant@microk8s ~]$ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                               STORAGECLASS        REASON   AGE
-pv01                                       5Gi        RWX            Retain           Available                                                                    106m
-pv02                                       5Gi        RWO            Retain           Available                                                                    106m
-pv03                                       5Gi        RWO            Delete           Available                                                                    106m
-pv04                                       5Gi        RWO            Delete           Available                                                                    106m
-pv05                                       5Gi        RWO            Delete           Available                                                                    106m
 pvc-09fd6420-a0a6-4186-9295-928de0d507fb   20Gi       RWX            Delete           Bound       container-registry/registry-claim   microk8s-hostpath            137m
 test-01-pvc01-vol                          10Gi       RWO            Delete           Bound       test-01/pvc01                       nfs-storage                  28m
 test-01-pvc02-vol                          10Gi       RWX            Delete           Bound       test-01/pvc02                       nfs-storage                  28m
@@ -140,4 +124,4 @@ test-01              pvc04            Pending                                   
 test-01              pvc05            Pending                                                                        nfs-storage          28m
 test-01              pvc06            Bound     test-01-pvc06-vol                          5Gi        RWX            nfs-storage          28m
 ```
-As it is expected the pvc05 was not provisioned because of the Selectors. Selectors are not supported yet.
+As it is expected the _pvc05_ was not provisioned because of the Selectors. Selectors are not supported by current provisioner.
