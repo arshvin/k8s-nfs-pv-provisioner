@@ -2,14 +2,15 @@ package checker
 
 import (
 	"fmt"
-	"strings"
 	"k8s-pv-provisioner/cmd/provisioner/config"
+	"strings"
+
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog"
 )
 
-/*PvcChecker is a gatekeeper though which a PVC should pass to reach to PV provision*/
+/*PvcChecker is a gatekeeper through which a PVC should pass to reach to PV provision*/
 type PvcChecker struct {
 	AbstractChecker
 	pvc *core_v1.PersistentVolumeClaim

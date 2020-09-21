@@ -7,11 +7,10 @@ import (
 	"k8s.io/klog"
 )
 
-
-/*PvChecker is a gatekeeper though which a PV should pass to be deleted*/
+/*PvChecker is a gatekeeper through which a PV should pass to be deleted*/
 type PvChecker struct {
 	AbstractChecker
-	pv      *core_v1.PersistentVolume
+	pv *core_v1.PersistentVolume
 }
 
 func (ch PvChecker) released() bool {
@@ -48,7 +47,7 @@ func (ch PvChecker) properReclaimPolicy() bool {
 
 func (ch PvChecker) properClassName() bool {
 	storageClassName := ch.pv.Spec.StorageClassName
-	if _, present := appConfig.StorageClasses[storageClassName]; present {
+	if _, ok := appConfig.StorageClasses[storageClassName]; ok {
 		return true
 	}
 
@@ -56,17 +55,17 @@ func (ch PvChecker) properClassName() bool {
 	return false
 }
 
-//IsReleased is method returning the result of whether the PV released or not to be delete by the provisioner
+//IsReleased is method returning the result of whether the PV released or not in order to be deleted by the provisioner
 func (ch PvChecker) IsReleased() bool {
 	return ch.Results[released]
 }
 
-//HasProperClassName is method returning whether PV has proper storage class to be delete by the provisioner
+//HasProperClassName is method returning whether PV has proper storage class to be deleted by the provisioner
 func (ch PvChecker) HasProperClassName() bool {
 	return ch.Results[properStorageClassName]
 }
 
-//HasProperReclaimPolicy is method returning whether PV has proper reclaim to be delete by the provisioner
+//HasProperReclaimPolicy is method returning whether PV has proper reclaim to be deleted by the provisioner
 func (ch PvChecker) HasProperReclaimPolicy() bool {
 	return ch.Results[properReclaimPolicy]
 }

@@ -10,7 +10,8 @@ type Checker interface {
 //AbstractChecker is absctract checker which is implemented a couple methods
 type AbstractChecker struct {
 	Checker
-	Results map[int]bool}
+	Results map[int]bool
+}
 
 //PerformChecks is the entry point to checking porcess for client code
 func (ch *AbstractChecker) PerformChecks() {
@@ -31,7 +32,7 @@ func (ch *AbstractChecker) PerformChecks() {
 	}
 }
 
-//IsAllOK is method that return true is all chacks were passed successfully otherwise false
+//IsAllOK is method that return true is all checks were passed successfully otherwise false
 func (ch AbstractChecker) IsAllOK() bool {
 	for _, ok := range ch.Results {
 		if !ok {

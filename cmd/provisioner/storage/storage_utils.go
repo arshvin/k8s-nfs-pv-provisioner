@@ -26,33 +26,37 @@ func ChooseBaseNameOfAsset(args ...string) string {
 	return strings.Join(result, "-") //-> arg1-arg2...-argN-vol
 }
 
+func processOwnerAnnotation(pvc *v1.PersistentVolumeClaim, value string, defaultValue int) int {
+	var result int
+	var err error
+
+	value, ok := pvc.Annotations[value]
+	if ok {
+		result, err = castToInt(value)
+		if err != nil {
+			klog.Warningf("PersistentVolumeClaim: %v annotation: %v could not parse value: %v: %v", pvc.Name, config.AnnotationOwnerNewAssetUID, value, err)
+			result = defaultValue
+		}
+		return result
+	}
+	return defaultValue
+}
+
 //ChooseAssetOwner is func which decides of what uid gid attributes the new asset should have
 func ChooseAssetOwner(pvc *v1.PersistentVolumeClaim) (int, int) {
+
 	var uid, gid int
-	var err error
 
 	currentStorageClass := appConfig.StorageClasses[*pvc.Spec.StorageClassName]
 
-	value, ok := pvc.Annotations[config.AnnotationOwnerNewAssetUID]
-	if ok {
-		uid, err = castToInt(value)
-		if err != nil {
-			uid = currentStorageClass.DefaultOwnerAssetUID
-			klog.Warningf("PersistentVolumeClaim: %v annotation: %v could not parse value: %v: %v", pvc.Name, config.AnnotationOwnerNewAssetUID, value, err)
-		}
-	} else {
-		uid = currentStorageClass.DefaultOwnerAssetUID
+	uid = processOwnerAnnotation(pvc, config.AnnotationOwnerNewAssetUID, currentStorageClass.DefaultOwnerAssetUID) // Deprecated annotation
+	if uid == currentStorageClass.DefaultOwnerAssetUID {
+		uid = processOwnerAnnotation(pvc, config.AnnotationOwnerNewAssetUID1, currentStorageClass.DefaultOwnerAssetUID)
 	}
 
-	value, ok = pvc.Annotations[config.AnnotationOwnerNewAssetGID]
-	if ok {
-		gid, err = castToInt(value)
-		if err != nil {
-			gid = currentStorageClass.DefaultOwnerAssetGID
-			klog.Warningf("PersistentVolumeClaim: %v annotation: %v could not parse value: %v: %v", pvc.Name, config.AnnotationOwnerNewAssetGID, value, err)
-		}
-	} else {
-		gid = currentStorageClass.DefaultOwnerAssetGID
+	gid = processOwnerAnnotation(pvc, config.AnnotationOwnerNewAssetGID, currentStorageClass.DefaultOwnerAssetGID) // Deprecated annotation
+	if gid == currentStorageClass.DefaultOwnerAssetGID {
+		gid = processOwnerAnnotation(pvc, config.AnnotationOwnerNewAssetGID1, currentStorageClass.DefaultOwnerAssetGID)
 	}
 
 	return uid, gid
