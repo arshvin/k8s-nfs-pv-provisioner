@@ -10,9 +10,8 @@ import (
 
 /*PvChecker is a gatekeeper though which a PV should pass to be deleted*/
 type PvChecker struct {
-	pv      *core_v1.PersistentVolume
 	AbstractChecker
-	// results map[int]bool
+	pv      *core_v1.PersistentVolume
 }
 
 func (ch PvChecker) released() bool {

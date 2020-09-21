@@ -3,6 +3,7 @@ module k8s-pv-provisioner
 go 1.13
 
 require (
+	github.com/coreos/etcd v3.3.10+incompatible
 	github.com/go-delve/delve v1.5.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
