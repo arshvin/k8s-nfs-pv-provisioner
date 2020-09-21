@@ -1,4 +1,5 @@
 # Change list
+* 0.5.0 - Added checking of valid nfs-server name against regexp. Added of handling true/yes value of the `storage-asset.pv.provisioner/reuse-existing` annotation.
 * 0.4.1 - Updated docs according to changes. Removed excess iota statements.
 * 0.4.0 - Implemented choosing of `nfs` or `hostPath` type volume depending on presence of colon sign in `assetRoot` of a storage class
 * 0.3.2 - Cleaning code in order to remove code duplication for starting controllers

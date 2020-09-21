@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"k8s-pv-provisioner/cmd/provisioner/config"
 	"path"
+	"regexp"
 	"strings"
 
 	core_v1 "k8s.io/api/core/v1"
@@ -11,12 +12,35 @@ import (
 	"k8s.io/klog"
 )
 
+const hostnamePattern = `^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$`
+
 type pvArguments struct {
 	name          string
 	pvc           *core_v1.PersistentVolumeClaim
 	reclaimPolicy core_v1.PersistentVolumeReclaimPolicy
 	annotations   map[string]string
 	assetPath     string
+}
+
+func checkMatchTrueStr(value string) bool {
+	value = strings.ToLower(value)
+
+	if value == "true" || value == "yes" {
+		return true
+	}
+
+	return false
+}
+
+func checkMatchDNSorIPV4(value string) bool {
+
+	re, err := regexp.Compile(hostnamePattern)
+	if err != nil {
+		klog.Errorf("Could not compile the pattern: %v", hostnamePattern)
+		return false
+	}
+
+	return re.MatchString(value)
 }
 
 /*PreparePV is function which creates storage asset(folder) and returns prepared PV structure to be created in cluster. Depending on presence colon sign in
@@ -33,7 +57,7 @@ func PreparePV(pvc *core_v1.PersistentVolumeClaim) (*core_v1.PersistentVolume, e
 	pvStorageAssetPath := path.Join(currentStorageClass.StorageAssetRoot, storageAssetBaseName) // e.g. -> /mnt/nfs/sbx-namespace-some-app
 
 	var reuseExistingAsset bool
-	if _, present := pvc.Annotations[config.AnnotationUseExistingAsset]; present {
+	if value, ok := pvc.Annotations[config.AnnotationUseExistingAsset]; ok && checkMatchTrueStr(value) {
 		reuseExistingAsset = true
 	}
 	err := CreateStorageAsset(appStorageAssetPath, uid, gid, reuseExistingAsset)
@@ -92,7 +116,11 @@ func getNfsPersistentVolumeSource(assetPath string) core_v1.PersistentVolumeSour
 	if len(nfsAssetPath) > 2 {
 		panic(fmt.Sprintf("A storage class assetRoot must contain only 1 colon sign if NFS-like path usage is assumed. Got value: %v", assetPath))
 	}
-	//TODO: Here should be some checks whether the nfsAssetPath[0] meet hostname reqirements. Implement them
+
+	if checkMatchDNSorIPV4(nfsAssetPath[0]) == false {
+		panic(fmt.Sprintf("Server name does not match the pattern: '%v'. Got value: %v", hostnamePattern, assetPath))
+	}
+
 	return core_v1.PersistentVolumeSource{
 		NFS: &core_v1.NFSVolumeSource{
 			Server:   nfsAssetPath[0],
