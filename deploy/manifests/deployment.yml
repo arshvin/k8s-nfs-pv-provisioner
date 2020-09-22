@@ -27,7 +27,7 @@ spec:
           - --storage-asset-root
           - /pv/
           - --storage-classes
-            - storage1,storage2
+          - storage1,storage2
         image: microk8s:32001/nfs-provisioner:0.0.1
         volumeMounts:
         - mountPath: /pv/

@@ -34,8 +34,8 @@ Global Flags:
     * `--v` - (optional) specifies logging level. It might have value from range `0..3`. Default value is 0.
 2. Based on input argument's data the provisioner tries to connect to the cluster and get parameters of specified storage classes. Each storage class the provisioner working with must have following keys in `parameters` map:
     * `assetRoot` that is similar of the `--storage-asset-root` CLI-flag. These 2 parameters point to the same place on the shared file system. But the first one is used during creating PV object and for mounting particular PV to a pod by the K8S' controller. The second one is used by only provisioner itself to create a storage asset by OS's syscall and therefore the second path must be mounted into provisioner's pod, if it's supposed to work inside the cluster. But if the provisioner should work outside of the cluster the values of `assetRoot` of the storage class and `--storage-asset-root` of CLI-flag might be the same.
-    * `defaultOwnerAssetUid` that is used for set up UID ownership for created storage asset if it is not overridden by `storage.asset/owner-uid` PVC annotation.
-    * `defaultOwnerAssetGid` that is used for set up GID ownership for created storage asset if it is not overridden by `storage.asset/owner-gid` PVC annotation.
+    * `defaultOwnerAssetUid` that is used for set up UID ownership for created storage asset if it is not overridden by `storage.asset/owner-uid` (or `storage-asset.pv.provisioner/owner-uid`) PVC annotation.
+    * `defaultOwnerAssetGid` that is used for set up GID ownership for created storage asset if it is not overridden by `storage.asset/owner-gid` (or `storage-asset.pv.provisioner/owner-gid`) PVC annotation.
 3. After that it gets started to cycle to watch for:
     * PVCs which need provisioned PVs. It is named `PV provisioning stage`
     * PVs that have been already released and may be deleted. It is named `PV deprovisioning stage`.
@@ -57,10 +57,10 @@ Global Flags:
 
     Naming convention for basename of new storage asset looks like: __namespaceOfPvc__-__nameOfPvc__-__vol__. The _vol_ suffix is constant string but _namespaceOfPvc_ and _nameOfPvc_ are variables values.
 
-    Before creating storage asset the provisioner checks whether the target path exists or not. By default if the storage asset is already presented on filesystem the provisioner stops any other actions with error message for provision of the PV for requesting PVC. However there are cases when it needs to reuse already existing storage assets for instance due to reinstalling K8S cluster. If the PVC has annotation `storage-asset.pv.provisioner/reuse-existing` with any value then the provisioner will reuse existing storage asset if any. Otherwise it will try create it.
+    Before creating storage asset the provisioner checks whether the target path exists or not. By default if the storage asset is already presented on filesystem the provisioner stops any other actions with error message for provision of the PV for requesting PVC. However there are cases when it needs to reuse already existing storage assets for instance due to reinstalling K8S cluster. If the PVC has annotation `storage-asset.pv.provisioner/reuse-existing` with `true` or `yes` value then the provisioner will reuse existing storage asset if any. Otherwise it will try to create it.
 
     The ownership of the new created storage asset is assigned to UID and GID that can be specified by 2 ways:
-    * by annotations `storage.asset/owner-uid` or/and `storage.asset/owner-gid` of the PVC.
+    * by annotations `storage.asset/owner-uid` (`storage-asset.pv.provisioner/owner-uid`) or/and `storage.asset/owner-gid` (`storage-asset.pv.provisioner/owner-gid`) of the PVC.
     * by `parameters.defaultOwnerAssetUid` or/and `parameters.defaultOwnerAssetGid` of the class storage.
     The PVC's annotations have more precedence. If a particular annotation on the PVC is absent the corresponding parameter of the storage class will be used.
 

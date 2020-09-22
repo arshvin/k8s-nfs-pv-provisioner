@@ -26,8 +26,8 @@ items:
     name: pvc02
     namespace: test-01
     annotations:
-      storage-asset.pv.provisioner/owner-uid: "998" #New type of annotation but not implemented yet
-      storage-asset.pv.provisioner/owner-gid: "998" #New type of annotation but not implemented yet
+      storage-asset.pv.provisioner/owner-uid: "998" #New type naming of annotation
+      storage-asset.pv.provisioner/owner-gid: "998" #New type naming of annotation
       storage-asset.pv.provisioner/reuse-existing: "true"
   spec:
     accessModes:
@@ -97,6 +97,8 @@ items:
   metadata:
     name: pvc06
     namespace: test-01
+    annotations:
+      storage-asset.pv.provisioner/reuse-existing: "yes"
   spec:
     accessModes:
       - ReadWriteMany
